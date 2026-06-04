@@ -20,16 +20,16 @@ AI Community: https://linux.do
 > **After the AI finishes reading this file, it must automatically execute the following configuration process and then report what was changed. The user does not need to operate manually.**
 
 > ⚠️ **FIRST-TIME SETUP:** `skills/tool-index.md` is gitignored and does NOT exist in the cloned repo until you generate it.  
-> **Before reading RULES.md**, you MUST first run:  
-> - Windows: `powershell -ExecutionPolicy Bypass -File skills/scripts/bootstrap-reverse.ps1 --list`  
-> - Linux/macOS: `bash skills/scripts/bootstrap-reverse.sh --list`  
-> - Kali: `bash kali/scripts/bootstrap-reverse.sh --list`  
-> This generates the tool index and verifies all capabilities. Without this step, RULES.md will fail to read tool-index.md and routing will be broken.
+> **Before reading RULES.md**, you MUST first refresh the local tool index:  
+> - Windows: `powershell -ExecutionPolicy Bypass -File skills/scripts/refresh-tool-index.ps1`  
+> - Linux/macOS: `bash skills/scripts/refresh-tool-index.sh`  
+> - Kali: `bash kali/scripts/refresh-tool-index.sh`  
+> This generates `skills/tool-index.md` and `skills/tool-index.json` for the current machine. Without this step, RULES.md will fail to read tool-index.md and routing will be broken.
 
 ### Automatic Configuration Process
 
 ```text
-0. ⚠️ Run bootstrap first to generate skills/tool-index.md (see warning above)
+0. ⚠️ Run refresh-tool-index first to generate skills/tool-index.md (see warning above)
 1. Detect the actual installation path of this package (derived from the location of this file, i.e., the directory containing README.md)
 2. Detect the local operating system and distribution:
    - Windows → continue with this README and the PowerShell script path
@@ -320,7 +320,7 @@ Use the following routing first:
 Do not trust someone else’s scan result for long. After migrating to a new machine, refresh it first:
 
 ```powershell
-powershell -File "<SKILL_ROOT>\scripts\refresh-tool-index.ps1"
+powershell -File "<SKILL_ROOT>\skills\scripts\refresh-tool-index.ps1"
 ```
 
 After success, check:
@@ -592,7 +592,7 @@ After migrating the package, update all old paths pointing to:
 After migration, run again:
 
 ```powershell
-powershell -File "<your skill root>\scripts\refresh-tool-index.ps1"
+powershell -File "<your skill root>\skills\scripts\refresh-tool-index.ps1"
 ```
 
 Do not directly trust the bundled `tool-index.md`, because it was scanned on a previous machine.
@@ -627,7 +627,7 @@ powershell -File "<your skill root>\ida-reverse\scripts\open.ps1" -Path "C:\path
 ### 9.3 Tool Index
 
 ```powershell
-powershell -File "<your skill root>\scripts\refresh-tool-index.ps1"
+powershell -File "<your skill root>\skills\scripts\refresh-tool-index.ps1"
 ```
 
 Then confirm that `tool-index.md` correctly reflects at least:
@@ -877,19 +877,20 @@ After writing a log, the AI should also check whether the following files need t
 
 | Update Scope | What to update | How to write | Review required? |
 |---|---|---|---|
-| Experience log | New `field-journal/<date>_<name>.md` + `field-journal/_index.md` | Direct write ✅ | Auto-merged via `.github/workflows/auto-merge-journal.yml` |
+| Experience log | New `field-journal/<date>_<name>.md` + `field-journal/_index.md` | **PR branch preferred** | Auto-validation/auto-merge is available via `.github/workflows/auto-merge-journal.yml` for field-journal-only PRs |
 | Routing matrix | `routing.md` | **PR branch required** ⚠️ | ✅ Human or independent AI must review the diff before merge |
 | Bootstrap manifest | `scripts/bootstrap-manifest.json` | **PR branch required** ⚠️ | ✅ Human or independent AI must review the diff before merge |
 | Sub-skill documentation | Corresponding `SKILL.md` | **PR branch required** ⚠️ | ✅ Human or independent AI must review the diff before merge |
-| Tool index | Run `refresh-tool-index.ps1` | Direct write ✅ | Machine-generated, deterministic |
-| Anti-patterns / pitfalls | Create or append `pitfalls.md` | Direct write preferred, PR for shared directories | Direct if local-only; PR if in shared skill directory |
+| Tool index | Run `refresh-tool-index.ps1` / `refresh-tool-index.sh` | Direct local write ✅ | Machine-generated and gitignored; do not commit machine-specific output |
+| Anti-patterns / pitfalls | Create or append `pitfalls.md` | PR branch for shared skill directories | ✅ Review when committed to shared repository content |
 
-> **Core rule:** Field-journal entries and tool-index refreshes can be written directly — they are machine-generated or have existing PR safeguards.  
+> **Core rule:** Machine-specific tool-index files are local generated artifacts and should not be committed. Field-journal updates should be submitted as field-journal-only PRs so the existing workflow can validate and auto-merge them.  
 > **Routing.md, bootstrap-manifest.json, and SKILL.md changes MUST go through a PR workflow:**  
-> 1. `git checkout -b evolve/<timestamp>-<change-summary>`  
-> 2. Make the change and commit  
-> 3. If `gh` CLI is authenticated: `gh pr create --title "evolve: <summary>" --body "Evolution change from field-journal experience writeback"`  
-> 4. If `gh` is unavailable: commit locally and inform the user: *"Evolution change ready at branch evolve/... — please review and push."*  
+> 1. Ensure the working tree is clean; do not overwrite the user's uncommitted work.  
+> 2. `git checkout -b evolve/<timestamp>-<change-summary>`  
+> 3. Make the change and commit  
+> 4. If `gh` CLI is authenticated: `gh pr create --title "evolve: <summary>" --body "Evolution change from field-journal experience writeback"`  
+> 5. If `gh` is unavailable: commit locally and inform the user: *"Evolution change ready at branch evolve/... — please review and push."*  
 > This prevents silent corruption of routing logic, manifest integrity, or skill definitions by unverified AI edits.
 
 ### 15.5 Experience Index Maintenance

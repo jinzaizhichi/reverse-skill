@@ -171,7 +171,7 @@ description: <一句话描述适用场景和触发条件>
 
 ### 4.3 在 `refresh-tool-index.ps1` 中注册脚本引用
 
-打开 `scripts/refresh-tool-index.ps1`，在 `$scriptRefs` 哈希表中添加：
+打开 `skills/scripts/refresh-tool-index.ps1`，在 `$scriptRefs` 哈希表中添加：
 
 ```powershell
 '<tool-name>' = @('<new-skill-name>/scripts/<workflow>.ps1')
@@ -223,7 +223,7 @@ if (-not $spec.Available) {
 
 **Windows**：
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "<SKILL_ROOT>\scripts\refresh-tool-index.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "<SKILL_ROOT>\skills\scripts\refresh-tool-index.ps1"
 ```
 
 **Kali Linux**：
@@ -281,7 +281,7 @@ bash "<项目根目录>/kali/scripts/refresh-tool-index.sh"
 **Windows 平台**：
 - [ ] `scripts/bootstrap-manifest.json` 已注册新工具
 - [ ] `scripts/lib/ToolDiscovery.ps1` 已注册新工具（含 fallback path）
-- [ ] `scripts/refresh-tool-index.ps1` 的 `$scriptRefs` 已更新
+- [ ] `skills/scripts/refresh-tool-index.ps1` 的 `$scriptRefs` 已更新
 
 **Kali 平台（如果有 kali/ 目录）**：
 - [ ] `kali/scripts/bootstrap-manifest.json` 已注册新工具
