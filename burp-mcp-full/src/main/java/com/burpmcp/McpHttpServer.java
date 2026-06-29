@@ -23,6 +23,10 @@ import com.google.gson.*;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.IOException;
+import burp.api.montoya.core.ByteArray;
+import burp.api.montoya.http.sessions.*;
+import burp.api.montoya.websocket.extension.ExtensionWebSocket;
+import java.time.ZonedDateTime;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.*;
@@ -143,6 +147,26 @@ public class McpHttpServer extends NanoHTTPD {
             case "remove_proxy_rule": return removeProxyRule(params);
             case "extensions_list": return extensionsList(params);
             case "log": return logMessage(params);
+            case "cookie_jar_set": return cookieJarSet(params);
+            case "send_request_parallel": return sendRequestParallel(params);
+            case "websocket_create": return websocketCreate(params);
+            case "websocket_send_text": return websocketSendText(params);
+            case "websocket_send_binary": return websocketSendBinary(params);
+            case "websocket_close": return websocketClose(params);
+            case "websocket_list": return websocketList(params);
+            case "passive_intel": return passiveIntel(params);
+            case "session_create_rule": return sessionCreateRule(params);
+            case "session_list_rules": return sessionListRules(params);
+            case "session_remove_rule": return sessionRemoveRule(params);
+            case "jwt_decode": return jwtDecode(params);
+            case "jwt_attack": return jwtAttack(params);
+            case "injection_probe": return injectionProbe(params);
+            case "access_control_sweep": return accessControlSweep(params);
+            case "race_condition": return raceCondition(params);
+            case "inline_fuzzer": return inlineFuzzer(params);
+            case "scope_gate": return scopeGate(params);
+            case "privacy_mode": return privacyMode(params);
+            case "audit_log": return auditLog(params);
             default:
                 JsonObject err = new JsonObject();
                 err.addProperty("error", "Unknown tool: " + tool);
@@ -1424,6 +1448,151 @@ public class McpHttpServer extends NanoHTTPD {
 
     // ==================== HELPERS ====================
 
+
+    // === FIELDS ===
+    private final java.util.Map<String, ExtensionWebSocket> wsConnections = new java.util.concurrent.ConcurrentHashMap();
+    private int wsCounter = 0;
+    private volatile Registration sessionActionRegistration = null;
+    private boolean scopeGateEnabled = false;
+    private boolean privacyStrict = false;
+    private java.util.ArrayList<String> auditLogEntries = new java.util.ArrayList();
+    private java.util.concurrent.ExecutorService threadPool = java.util.concurrent.Executors.newFixedThreadPool(20);
+
+    private void addAuditLog(String e) { auditLogEntries.add(java.time.Instant.now() + " " + e); if(auditLogEntries.size()>1000) auditLogEntries.remove(0); }
+
+    private HttpRequestResponse sendOne(String method, String url, String body) {
+        try { java.net.URL u=new java.net.URL(url); boolean h="https".equals(u.getProtocol());
+            HttpService s=HttpService.httpService(u.getHost(), u.getPort()>0?u.getPort():(h?443:80), h);
+            String p=(u.getPath()==null||u.getPath().isEmpty())?"/":u.getPath(); String pq=u.getQuery()!=null?p+"?"+u.getQuery():p;
+            String r=method+" "+pq+" HTTP/1.1\r\nHost: "+u.getHost()+"\r\nConnection: close\r\n\r\n";
+            if(body!=null&&!body.isEmpty()) r=method+" "+pq+" HTTP/1.1\r\nHost: "+u.getHost()+"\r\nContent-Length: "+body.length()+"\r\nConnection: close\r\n\r\n"+body;
+            return api.http().sendRequest(HttpRequest.httpRequest(s, r));
+        } catch(Exception ex) { return null; }
+    }
+
+    // === PHASE 1 ===
+    private JsonObject cookieJarSet(JsonObject p) { JsonObject r=new JsonObject();
+        try{ api.http().cookieJar().setCookie(p.get("url").getAsString(),p.get("name").getAsString(),p.get("value").getAsString(),"/",ZonedDateTime.now().plusDays(30)); r.addProperty("success",true); }
+        catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject sendRequestParallel(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var reqs=p.getAsJsonArray("requests"); java.util.ArrayList futures=new java.util.ArrayList();
+            for(int i=0;i<reqs.size();i++){var o=reqs.get(i).getAsJsonObject(); futures.add(threadPool.submit(()->sendOne(o.get("method").getAsString(),o.get("url").getAsString(),o.has("body")?o.get("body").getAsString():null)));}
+            var items=new JsonArray();
+            for(Object fobj:futures){try{HttpRequestResponse rr=(HttpRequestResponse)((java.util.concurrent.Future)fobj).get(); var ri=new JsonObject(); ri.addProperty("status",rr.response()!=null?rr.response().statusCode():0); ri.addProperty("length",rr.response()!=null?rr.response().bodyToString().length():0); items.add(ri);}catch(Exception ex){}}
+            r.add("results",items); r.addProperty("total",items.size());
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject websocketCreate(JsonObject p) { JsonObject r=new JsonObject();
+        try{ boolean h=p.has("https")?p.get("https").getAsBoolean():true; int port=p.has("port")?p.get("port").getAsInt():(h?443:80);
+            var cr=api.websockets().createWebSocket(HttpService.httpService(p.get("host").getAsString(),port,h),p.has("path")?p.get("path").getAsString():"/");
+            r.addProperty("status",cr.status().toString()); cr.webSocket().ifPresent(ws->{String id="ws-"+(++wsCounter);wsConnections.put(id,ws);r.addProperty("id",id);});
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+
+    private JsonObject websocketSendBinary(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var ws=(ExtensionWebSocket)wsConnections.get(p.get("id").getAsString()); if(ws==null){r.addProperty("error","WS not found");return r;} ws.sendBinaryMessage(ByteArray.byteArray(p.get("data").getAsString().getBytes())); r.addProperty("success",true);}
+        catch(Exception e){r.addProperty("error",e.getMessage());} return r; }    private JsonObject websocketSendText(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var ws=(ExtensionWebSocket)wsConnections.get(p.get("id").getAsString()); if(ws==null){r.addProperty("error","WS not found");return r;} ws.sendTextMessage(p.get("text").getAsString()); r.addProperty("success",true);}
+        catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject websocketClose(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var ws=(ExtensionWebSocket)wsConnections.remove(p.get("id").getAsString()); if(ws==null){r.addProperty("error","WS not found");return r;} ws.close(); r.addProperty("success",true);}
+        catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject websocketList(JsonObject p) { JsonObject r=new JsonObject(); var items=new JsonArray();
+            for(String id:wsConnections.keySet()){var i=new JsonObject();i.addProperty("id",id);items.add(i);} r.add("connections",items); r.addProperty("total",items.size()); return r; }
+    private JsonObject passiveIntel(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var f=new JsonArray(); int lim=p.has("limit")?p.get("limit").getAsInt():100; int c=0;
+            for(var e:api.proxy().history()){if(c>=lim)break; String b=e.response()!=null?e.response().bodyToString():""; String all=b+" "+e.request();
+            java.util.regex.Matcher m; String t=null;
+            if((m=java.util.regex.Pattern.compile("AKIA[0-9A-Z]{16}").matcher(all)).find()) t="AWS Key: "+m.group();
+            else if((m=java.util.regex.Pattern.compile("eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+").matcher(all)).find()) t="JWT";
+            else if((m=java.util.regex.Pattern.compile("-----BEGIN.*PRIVATE KEY-----").matcher(all)).find()) t="Private Key";
+            else if((m=java.util.regex.Pattern.compile("xox[baprs]-[0-9]{10,}-[0-9]{10,}-[a-zA-Z0-9]{24}").matcher(all)).find()) t="Slack Token";
+            if(t!=null){var fi=new JsonObject();fi.addProperty("type",t);fi.addProperty("url",e.request().url());f.add(fi);} c++;}
+            r.add("findings",f); r.addProperty("total",f.size());
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject sessionCreateRule(JsonObject p) { JsonObject r=new JsonObject();
+        try{ if(sessionActionRegistration!=null){r.addProperty("error","Rule active");return r;}
+            var pat=java.util.regex.Pattern.compile(p.get("find").getAsString()); String rep=p.get("replace").getAsString();
+            sessionActionRegistration=api.http().registerSessionHandlingAction(new SessionHandlingAction(){
+                public String name(){return "MCP Rule";}
+                public ActionResult performAction(SessionHandlingActionData d){
+                    String req=d.request().toString(); req=pat.matcher(req).replaceAll(rep);
+                    try{return ActionResult.actionResult(HttpRequest.httpRequest(req));}catch(Exception e){return ActionResult.actionResult(d.request());}
+                }});
+            r.addProperty("success",true); r.addProperty("rule","s/"+p.get("find").getAsString()+"/"+rep+"/");
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject sessionListRules(JsonObject p) { JsonObject r=new JsonObject(); r.addProperty("active",sessionActionRegistration!=null&&sessionActionRegistration.isRegistered()); return r; }
+    private JsonObject sessionRemoveRule(JsonObject p) { JsonObject r=new JsonObject(); if(sessionActionRegistration!=null&&sessionActionRegistration.isRegistered()) sessionActionRegistration.deregister(); sessionActionRegistration=null; r.addProperty("success",true); return r; }
+
+    // === PHASE 2 ===
+    private JsonObject jwtDecode(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var parts=p.get("token").getAsString().split("\\."); if(parts.length<2){r.addProperty("error","Invalid JWT");return r;}
+            r.add("header",JsonParser.parseString(new String(java.util.Base64.getUrlDecoder().decode(parts[0]))));
+            r.add("payload",JsonParser.parseString(new String(java.util.Base64.getUrlDecoder().decode(parts[1]))));
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject jwtAttack(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var parts=p.get("token").getAsString().split("\\.");
+            if("none".equals(p.has("attack")?p.get("attack").getAsString():"none")){
+                var h=JsonParser.parseString(new String(java.util.Base64.getUrlDecoder().decode(parts[0]))).getAsJsonObject();
+                h.addProperty("alg","none"); r.addProperty("forged",java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(h.toString().getBytes())+"."+parts[1]+".");
+            }}catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject injectionProbe(JsonObject p) { JsonObject r=new JsonObject();
+        try{ String url=p.get("url").getAsString(),param=p.get("param").getAsString(),type=p.has("type")?p.get("type").getAsString():"sqli";
+            String[][] lib={{"\'","\' OR \'1\'=\'1","\' AND SLEEP(3)--"},{"syntax","unclosed","mysql","ORA-"}}; // sqli default
+            if("ssti".equals(type)) lib=new String[][]{{"{{7*7}}","${7*7}","<%=7*7%>"},{"49"}};
+            if("lfi".equals(type)) lib=new String[][]{{"../../etc/passwd","....//....//etc/passwd"},{"root:","bin:"}};
+            var items=new JsonArray();
+            for(String pl:lib[0]){ String fu=url+(url.contains("?")?"&":"?")+param+"="+java.net.URLEncoder.encode(pl,"UTF-8");
+                var u=new java.net.URL(fu); boolean hh="https".equals(u.getProtocol());
+                var svc=HttpService.httpService(u.getHost(),u.getPort()>0?u.getPort():(hh?443:80),hh);
+                var req=HttpRequest.httpRequest(svc,"GET "+(u.getQuery()!=null?u.getPath()+"?"+u.getQuery():u.getPath())+" HTTP/1.1\r\nHost: "+u.getHost()+"\r\nConnection: close\r\n\r\n");
+                var rr=api.http().sendRequest(req); String body=rr.response()!=null?rr.response().bodyToString():"";
+                boolean hit=false; for(String ind:lib[1]){if(body.toLowerCase().contains(ind.toLowerCase())){hit=true;break;}}
+                var item=new JsonObject(); item.addProperty("payload",pl); item.addProperty("status",rr.response()!=null?rr.response().statusCode():0);
+                item.addProperty("length",body.length()); item.addProperty("indicator_match",hit); items.add(item);}
+            r.add("results",items); r.addProperty("total",items.size());
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject accessControlSweep(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var svc=HttpService.httpService(p.get("host").getAsString(),p.has("port")?p.get("port").getAsInt():443,p.has("https")?p.get("https").getAsBoolean():true);
+            var items=new JsonArray();
+            for(String a:p.get("auth_headers").getAsString().split("\\|")){
+                String mod=p.get("request").getAsString().replaceAll("(?i)Authorization: .*\r\n",a.isEmpty()?"":"Authorization: "+a+"\r\n");
+                var rr=api.http().sendRequest(HttpRequest.httpRequest(svc,mod)); var item=new JsonObject();
+                item.addProperty("auth",a.isEmpty()?"none":a); item.addProperty("status",rr.response()!=null?rr.response().statusCode():0);
+                item.addProperty("length",rr.response()!=null?rr.response().bodyToString().length():0); items.add(item);}
+            r.add("sweeps",items);
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject raceCondition(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var svc=HttpService.httpService(p.get("host").getAsString(),p.has("port")?p.get("port").getAsInt():443,p.has("https")?p.get("https").getAsBoolean():true);
+            var req=HttpRequest.httpRequest(svc,p.get("request").getAsString()); int cnt=p.has("count")?p.get("count").getAsInt():10;
+            java.util.ArrayList futures=new java.util.ArrayList(); for(int i=0;i<cnt;i++) futures.add(threadPool.submit(()->api.http().sendRequest(req)));
+            var items=new JsonArray(); var lens=new java.util.HashSet();
+            for(Object fobj:futures){try{HttpRequestResponse rr=(HttpRequestResponse)((java.util.concurrent.Future)fobj).get(); var item=new JsonObject();
+                item.addProperty("status",rr.response()!=null?rr.response().statusCode():0); item.addProperty("length",rr.response()!=null?rr.response().bodyToString().length():0); items.add(item);
+                if(rr.response()!=null)lens.add(rr.response().bodyToString().length());}catch(Exception ex){}}
+            r.add("results",items); r.addProperty("total",cnt); r.addProperty("unique_lengths",lens.size());
+            r.addProperty("verdict",lens.size()>1?"Possible race":"All identical");
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+    private JsonObject inlineFuzzer(JsonObject p) { JsonObject r=new JsonObject();
+        try{ var svc=HttpService.httpService(p.get("host").getAsString(),p.has("port")?p.get("port").getAsInt():443,p.has("https")?p.get("https").getAsBoolean():true);
+            String tmpl=p.get("template").getAsString(), marker=p.has("marker")?p.get("marker").getAsString():"FUZZ"; var wl=p.getAsJsonArray("wordlist");
+            java.util.ArrayList futures=new java.util.ArrayList(); for(int i=0;i<wl.size();i++){String pl=wl.get(i).getAsString(); futures.add(threadPool.submit(()->api.http().sendRequest(HttpRequest.httpRequest(svc,tmpl.replace(marker,pl)))));}
+            var items=new JsonArray();
+            for(Object fobj:futures){try{HttpRequestResponse rr=(HttpRequestResponse)((java.util.concurrent.Future)fobj).get(); var item=new JsonObject();
+                item.addProperty("status",rr.response()!=null?rr.response().statusCode():0); item.addProperty("length",rr.response()!=null?rr.response().bodyToString().length():0); items.add(item);
+            }catch(Exception ex){}}
+            r.add("results",items); r.addProperty("total",items.size());
+        }catch(Exception e){r.addProperty("error",e.getMessage());} return r; }
+
+    // === PHASE 3-4 ===
+    private JsonObject scopeGate(JsonObject p) { JsonObject r=new JsonObject();
+        String a=p.has("action")?p.get("action").getAsString():""; if("enable".equals(a)){scopeGateEnabled=true;addAuditLog("scope:enabled");r.addProperty("scope_gate",true);}
+        else if("disable".equals(a)){scopeGateEnabled=false;addAuditLog("scope:disabled");r.addProperty("scope_gate",false);} else r.addProperty("scope_gate",scopeGateEnabled); return r; }
+    private JsonObject privacyMode(JsonObject p) { JsonObject r=new JsonObject();
+        String m=p.has("mode")?p.get("mode").getAsString():""; if("strict".equals(m)){privacyStrict=true;addAuditLog("privacy:strict");r.addProperty("privacy","strict");}
+        else if("off".equals(m)){privacyStrict=false;addAuditLog("privacy:off");r.addProperty("privacy","off");} else r.addProperty("privacy",privacyStrict?"strict":"off"); return r; }
+    private JsonObject auditLog(JsonObject p) { JsonObject r=new JsonObject();
+        int lim=p.has("limit")?p.get("limit").getAsInt():50; var items=new JsonArray();
+        int start=Math.max(0,auditLogEntries.size()-lim); for(int i=start;i<auditLogEntries.size();i++) items.add((String)auditLogEntries.get(i));
+        r.add("entries",items); r.addProperty("total",items.size()); return r; }
     private String getToolList() {
         return "[\"proxy_history\",\"proxy_detail\",\"proxy_websocket\",\"proxy_listeners\"," +
                "\"proxy_match_replace\",\"proxy_clear\",\"proxy_history_filtered\"," +
@@ -1441,7 +1610,7 @@ public class McpHttpServer extends NanoHTTPD {
                "\"cookie_jar\",\"token_analysis\",\"sequencer\",\"export_cert\",\"websocket_send\"," +
                "\"save_project\",\"burp_version\",\"add_issue\",\"register_http_handler\"," +
                "\"remove_http_handler\",\"register_proxy_rule\",\"remove_proxy_rule\"," +
-               "\"extensions_list\",\"log\"]";
+               "\"extensions_list\",\"log\",\"cookie_jar_set\",\"send_request_parallel\",\"websocket_create\",\"websocket_send_text\",\"websocket_send_binary\",\"websocket_close\",\"websocket_list\",\"passive_intel\",\"session_create_rule\",\"session_list_rules\",\"session_remove_rule\",\"jwt_decode\",\"jwt_attack\",\"injection_probe\",\"access_control_sweep\",\"race_condition\",\"inline_fuzzer\",\"scope_gate\",\"privacy_mode\",\"audit_log\"]";
     }
 
     private void addCorsHeaders(Response resp) {
