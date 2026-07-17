@@ -9,8 +9,13 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Ten new first-class skills (R21–R30): `protocol-reverse`, `ghidra-reverse`, `cloud-k8s`, `windows-ad`, `digital-forensics`, `code-audit`, `threat-hunting`, `game-reverse`, `wifi-wireless`, `browser-extension-reverse`
-- Wired into `MASTER-ROUTING.md`, `master-route.ps1`, `routing.md`, module table, domain map, role-map, and coherence tests
+- Domain skills R21–R27, R29–R30: `protocol-reverse`, `ghidra-reverse`, `cloud-k8s`, `windows-ad`, `digital-forensics`, `code-audit`, `threat-hunting`, `wifi-wireless`, `browser-extension-reverse`
+- High-quality skills R28, R31–R38: `ot-ics`, `macos-reverse`, `thick-client`, `go-rust-reverse`, `hardware-security`, `database-security`, `email-security`, `identity-federation`, `radio-sdr`
+- Wired into `MASTER-ROUTING.md`, `master-route.ps1`, routing tables, domain map, role-map, coherence tests
+
+### Removed
+
+- `game-reverse/` (not a product focus; Unity/IL2CPP remains via `reverse-engineering` + seed-014)
 
 ## [1.0.0] — 2026-07-18
 

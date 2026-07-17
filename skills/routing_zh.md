@@ -159,9 +159,18 @@
 | "取证/Volatility/内存转储" | `digital-forensics/SKILL.md` |
 | "代码审计/SAST/Semgrep" | `code-audit/SKILL.md` |
 | "威胁狩猎/蓝队/检测工程" | `threat-hunting/SKILL.md` |
-| "游戏逆向/IL2CPP/Unity" | `game-reverse/SKILL.md` |
+| "游戏逆向/IL2CPP/Unity" | `reverse-engineering/SKILL.md` + seed-014 |
 | "WiFi/无线渗透/aircrack" | `wifi-wireless/SKILL.md` |
 | "浏览器扩展/Chrome 扩展/crx" | `browser-extension-reverse/SKILL.md` |
+| "工控/OT/ICS/SCADA/PLC" | `ot-ics/SKILL.md` |
+| "macOS逆向/Mach-O" | `macos-reverse/SKILL.md` |
+| "厚客户端/桌面客户端" | `thick-client/SKILL.md` |
+| "Go逆向/Rust逆向" | `go-rust-reverse/SKILL.md` |
+| "UART/JTAG/硬件调试" | `hardware-security/SKILL.md` |
+| "数据库安全/Redis/Mongo" | `database-security/SKILL.md` |
+| "钓鱼邮件/SPF/DKIM/DMARC" | `email-security/SKILL.md` |
+| "SAML/OIDC/SSO联邦" | `identity-federation/SKILL.md` |
+| "SDR/射频/HackRF" | `radio-sdr/SKILL.md` |
 | "BurpSuite/Web 代理/拦截" | `pentest-tools/SKILL.md` — Web 代理 |
 | "Responder/LLMNR 投毒/NBT-NS" | `pentest-tools/SKILL.md` — 内网投毒 |
 | "BloodHound/AD 路径/攻击图" | `pentest-tools/SKILL.md` — AD 攻击路径可视化 |

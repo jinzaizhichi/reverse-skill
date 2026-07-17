@@ -38,9 +38,17 @@ $map = [ordered]@{
     'R25' = 'digital-forensics/SKILL.md'
     'R26' = 'code-audit/SKILL.md'
     'R27' = 'threat-hunting/SKILL.md'
-    'R28' = 'game-reverse/SKILL.md'
+    'R28' = 'ot-ics/SKILL.md'
     'R29' = 'wifi-wireless/SKILL.md'
     'R30' = 'browser-extension-reverse/SKILL.md'
+    'R31' = 'macos-reverse/SKILL.md'
+    'R32' = 'thick-client/SKILL.md'
+    'R33' = 'go-rust-reverse/SKILL.md'
+    'R34' = 'hardware-security/SKILL.md'
+    'R35' = 'database-security/SKILL.md'
+    'R36' = 'email-security/SKILL.md'
+    'R37' = 'identity-federation/SKILL.md'
+    'R38' = 'radio-sdr/SKILL.md'
 }
 
 $labels = [ordered]@{
@@ -72,9 +80,17 @@ $labels = [ordered]@{
     'R25' = 'Digital forensics'
     'R26' = 'Code audit / SAST'
     'R27' = 'Threat hunting'
-    'R28' = 'Game reverse'
+    'R28' = 'OT / ICS'
     'R29' = 'Wi-Fi / wireless'
     'R30' = 'Browser extension reverse'
+    'R31' = 'macOS / Mach-O reverse'
+    'R32' = 'Thick client security'
+    'R33' = 'Go / Rust reverse'
+    'R34' = 'Hardware / debug interfaces'
+    'R35' = 'Database security'
+    'R36' = 'Email / phishing analysis'
+    'R37' = 'Identity federation (SAML/OIDC)'
+    'R38' = 'RF / SDR research'
 }
 
 $sel = New-Object System.Collections.Generic.List[string]
@@ -106,12 +122,20 @@ if ($t -match 'active.?directory|\bad\b.?cs|bloodhound|kerberoast|as-?rep|certip
 if ($t -match 'forensic|volatility|memory.?dump|plaso|timeline.?explorer|取证|内存.?转储|应急.?响应.?取证') { [void]$sel.Add('R25') }
 if ($t -match 'code.?audit|sast|semgrep|codeql|source.?review|白盒|代码.?审计|静态.?应用.?安全') { [void]$sel.Add('R26') }
 if ($t -match 'threat.?hunt|detection.?engineer|blue.?team|sigma.?rule|威胁.?狩猎|检测.?工程|蓝队.?狩猎') { [void]$sel.Add('R27') }
-if ($t -match 'game.?reverse|il2cpp|unity.?reverse|unreal.?engine|gameassembly|游戏.?逆向|反作弊.?研究') { [void]$sel.Add('R28') }
+if ($t -match '\bot\b|\bics\b|scada|plc\b|modbus|dnp3|s7comm|purdue|工控|工业.?控制|ot/?ics') { [void]$sel.Add('R28') }
 if ($t -match 'wifi|wi-?fi|aircrack|airmon|wpa.?handshake|wireless.?pentest|无线.?渗透|wifi.?攻击') { [void]$sel.Add('R29') }
 if ($t -match 'browser.?extension|chrome.?extension|\bcrx\b|\bxpi\b|mv3.?extension|浏览器.?扩展|chrome.?扩展') { [void]$sel.Add('R30') }
+if ($t -match 'macos|mach-?o|codesign|objective-?c|swift.?reverse|xpc|mac.?逆向|苹果.?桌面') { [void]$sel.Add('R31') }
+if ($t -match 'thick.?client|desktop.?client|electron.?app|winforms|wpf|厚客户端|桌面.?客户端') { [void]$sel.Add('R32') }
+if ($t -match '\bgolang\b|\brustc\b|go.?binary|stripped.?go|gore.?sym|go.?malware|rust.?binary|go.?逆向|rust.?逆向') { [void]$sel.Add('R33') }
+if ($t -match 'uart|jtag|swd|debug.?pad|flashrom|硬件.?调试|串口.?shell|芯片.?提取') { [void]$sel.Add('R34') }
+if ($t -match 'database.?secur|\bmysql\b|\bpostgres|mongodb|redis.?secur|mssql|数据库.?安全|数据库.?渗透') { [void]$sel.Add('R35') }
+if ($t -match 'phish|spf|dkim|dmarc|bec\b|email.?secur|钓鱼.?邮件|邮件.?安全') { [void]$sel.Add('R36') }
+if ($t -match 'saml|oidc|openid.?connect|oauth2|sso\b|联邦.?身份|单点.?登录') { [void]$sel.Add('R37') }
+if ($t -match '\bsdr\b|hackrf|rtl-?sdr|gnu.?radio|\burh\b|射频|软件.?无线电') { [void]$sel.Add('R38') }
 if ($t -match 'ollvm|anti-?debug|unicorn|angr|gdb|deobfuscat|控制流平坦|反调试') { [void]$sel.Add('R0') }
 if ($t -match 'frida' -and $t -notmatch '\bapk\b|smali|jadx|android|安卓') { [void]$sel.Add('R0') }
-if ($t -match 'reverse|逆向' -and $t -notmatch 'apk|js.?reverse|ios|mobile|\.net|firmware|malware|安卓|固件|恶意|protocol|ghidra|il2cpp|extension|游戏') { [void]$sel.Add('R0') }
+if ($t -match 'reverse|逆向' -and $t -notmatch 'apk|js.?reverse|ios|mobile|\.net|firmware|malware|安卓|固件|恶意|protocol|ghidra|extension|macos|mach|golang|rust') { [void]$sel.Add('R0') }
 
 $notes = New-Object System.Collections.Generic.List[string]
 
@@ -120,7 +144,7 @@ foreach ($d in $sel) { if (-not $uniq.Contains($d)) { [void]$uniq.Add($d) } }
 
 # priority high -> low
 # malware (R9) before generic IDA (R6) when both match
-$priority = @('R4','R1','R2','R3','R30','R28','R5','R9','R21','R22','R6','R7','R8','R17','R16','R18','R24','R23','R25','R29','R26','R27','R10','R11','R12','R13','R14','R15','R19','R20','R0')
+$priority = @('R4','R1','R2','R3','R30','R31','R33','R5','R9','R21','R22','R6','R7','R8','R34','R28','R17','R16','R18','R24','R37','R23','R35','R25','R36','R29','R38','R32','R26','R27','R10','R11','R12','R13','R14','R15','R19','R20','R0')
 $primary = $null
 foreach ($p in $priority) {
     if ($uniq.Contains($p)) { $primary = $p; break }

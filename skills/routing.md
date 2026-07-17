@@ -31,7 +31,16 @@ Route tasks to the most appropriate skill module by target type, user intent, an
 | Cloud / Container / K8s | `cloud-k8s/` | CTF: `../CTF-Sandbox-Orchestrator/competition-agent-cloud/` |
 | Windows AD / Kerberos / AD CS | `windows-ad/` | multi-stage: `attack-chain/` |
 | Source code / SAST | `code-audit/` | deps/CI: `supply-chain-security/` |
-| Game client (Unity/UE) | `game-reverse/` | `dotnet-reverse/` for Mono assemblies |
+| Game client (Unity/UE) | `reverse-engineering/` + seed-014 | `dotnet-reverse/` for Mono assemblies |
+| OT / ICS / SCADA | `ot-ics/` | `firmware-pentest/` offline firmware |
+| macOS / Mach-O desktop | `macos-reverse/` | iOS → `mobile-reverse/` |
+| Thick desktop client | `thick-client/` | Electron → also `js-reverse/` |
+| Go / Rust stripped binary | `go-rust-reverse/` | `ida-reverse/` / `ghidra-reverse/` |
+| UART / JTAG / debug pads | `hardware-security/` | then `firmware-pentest/` |
+| Database instance security | `database-security/` | SQLi web path → `pentest-tools/` |
+| Email / phishing / DMARC | `email-security/` | |
+| SAML / OIDC / SSO | `identity-federation/` | JWT-only API → `api-security/` |
+| RF / SDR (non-Wi-Fi) | `radio-sdr/` | Wi-Fi → `wifi-wireless/` |
 | Browser extension (crx/xpi) | `browser-extension-reverse/` | page JS only → `js-reverse/` |
 | Wi-Fi / wireless | `wifi-wireless/` | close-range chain → `attack-chain/` |
 | Blue team / threat hunt | `threat-hunting/` | sample IOC → `malware-analysis/` |
@@ -164,9 +173,18 @@ Route tasks to the most appropriate skill module by target type, user intent, an
 | "forensics / Volatility / memory dump / IR timeline" | `digital-forensics/SKILL.md` |
 | "code audit / SAST / Semgrep / CodeQL / whitebox" | `code-audit/SKILL.md` |
 | "threat hunting / blue team / detection engineering" | `threat-hunting/SKILL.md` |
-| "game reverse / IL2CPP / Unity / Unreal" | `game-reverse/SKILL.md` |
+| "game reverse / IL2CPP / Unity / Unreal" | `reverse-engineering/SKILL.md` + seed-014 |
 | "Wi-Fi / aircrack / wireless pentest" | `wifi-wireless/SKILL.md` |
 | "browser extension / Chrome extension / crx" | `browser-extension-reverse/SKILL.md` |
+| "OT / ICS / SCADA / PLC / Modbus" | `ot-ics/SKILL.md` |
+| "macOS reverse / Mach-O / codesign" | `macos-reverse/SKILL.md` |
+| "thick client / desktop client / Electron security" | `thick-client/SKILL.md` |
+| "Go reverse / Rust reverse / GoReSym" | `go-rust-reverse/SKILL.md` |
+| "UART / JTAG / hardware debug pads" | `hardware-security/SKILL.md` |
+| "database security / Redis / Mongo / MSSQL hardening" | `database-security/SKILL.md` |
+| "phishing analysis / SPF DKIM DMARC / BEC" | `email-security/SKILL.md` |
+| "SAML / OIDC / SSO federation" | `identity-federation/SKILL.md` |
+| "SDR / HackRF / RF protocol research" | `radio-sdr/SKILL.md` |
 | "ProxyCat / proxy pool / IP rotation" | `pentest-tools/SKILL.md` — proxy management |
 
 ## CTF Wording Normalization

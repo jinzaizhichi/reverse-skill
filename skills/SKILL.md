@@ -66,9 +66,17 @@ description: Routes reverse engineering, exploitation, penetration testing, malw
 | **数字取证** | `digital-forensics/` | 内存/磁盘时间线、PCAP 溯源、IR 保全 |
 | **代码审计 / SAST** | `code-audit/` | Semgrep/CodeQL、白盒、危险 API 与鉴权审查 |
 | **威胁狩猎** | `threat-hunting/` | 假说驱动狩猎、Sigma 检测工程、蓝队验证 |
-| **游戏逆向** | `game-reverse/` | Unity IL2CPP/Mono、UE、反作弊表面研究 |
+| **OT / ICS 工控** | `ot-ics/` | Purdue 分区、PLC/SCADA、被动优先评估 |
 | **Wi-Fi / 无线** | `wifi-wireless/` | 授权无线评估、握手/PMKID、实验室规则 |
 | **浏览器扩展逆向** | `browser-extension-reverse/` | Chrome/Firefox 扩展、MV3 worker、权限面 |
+| **macOS / Mach-O** | `macos-reverse/` | 签名、ObjC/Swift、LaunchAgent、macOS 样本 |
+| **厚客户端** | `thick-client/` | 桌面 C/S、本地存储、IPC、更新通道 |
+| **Go / Rust 逆向** | `go-rust-reverse/` | 剥离符号 Go/Rust、pclntab、panic 字符串 |
+| **硬件调试接口** | `hardware-security/` | UART/JTAG/SWD、只读提取、交接固件 |
+| **数据库安全** | `database-security/` | MySQL/PG/MSSQL/Mongo/Redis 暴露与配置 |
+| **邮件安全** | `email-security/` | 钓鱼拆解、SPF/DKIM/DMARC、BEC |
+| **联邦身份** | `identity-federation/` | SAML/OIDC/OAuth SSO 流与错配 |
+| **RF / SDR** | `radio-sdr/` | 授权射频研究、默认只收 |
 
 ## 统一入口
 

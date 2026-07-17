@@ -75,9 +75,17 @@ powershell -File skills\scripts\append-evidence.ps1 -CaseRoot work\my-case -Id E
 | **R25** | 取证 / 内存转储 / 时间线 | `digital-forensics/` |
 | **R26** | 代码审计 / SAST / Semgrep | `code-audit/` |
 | **R27** | 威胁狩猎 / 检测工程 / 蓝队 | `threat-hunting/` |
-| **R28** | 游戏逆向 / Unity IL2CPP | `game-reverse/` |
+| **R28** | OT / ICS / 工控 | `ot-ics/` |
 | **R29** | Wi-Fi / 无线渗透 | `wifi-wireless/` |
 | **R30** | 浏览器扩展逆向 | `browser-extension-reverse/` |
+| **R31** | macOS / Mach-O | `macos-reverse/` |
+| **R32** | 厚客户端安全 | `thick-client/` |
+| **R33** | Go / Rust 二进制 | `go-rust-reverse/` |
+| **R34** | 硬件调试口 / UART/JTAG | `hardware-security/` |
+| **R35** | 数据库安全 | `database-security/` |
+| **R36** | 邮件 / 钓鱼分析 | `email-security/` |
+| **R37** | 联邦身份 SAML/OIDC | `identity-federation/` |
+| **R38** | RF / SDR 研究 | `radio-sdr/` |
 | **R0** | 通用逆向 / 反调试 / OLLVM / 未知二进制 | `reverse-engineering/` |
 
 未命中强关键词 → PRIMARY=`R0`，并提示打开 `routing.md`。

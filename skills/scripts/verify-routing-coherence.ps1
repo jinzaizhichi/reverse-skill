@@ -144,9 +144,17 @@ $cases = @(
     @{ N = 'forensics'; H = 'volatility memory dump forensics'; Id = 'R25'; Sub = 'digital-forensics/SKILL.md' },
     @{ N = 'codeaudit'; H = 'semgrep code audit sast'; Id = 'R26'; Sub = 'code-audit/SKILL.md' },
     @{ N = 'hunt'; H = 'threat hunting detection engineering'; Id = 'R27'; Sub = 'threat-hunting/SKILL.md' },
-    @{ N = 'game'; H = 'il2cpp unity game reverse'; Id = 'R28'; Sub = 'game-reverse/SKILL.md' },
+    @{ N = 'ot'; H = 'scada plc modbus industrial control'; Id = 'R28'; Sub = 'ot-ics/SKILL.md' },
     @{ N = 'wifi'; H = 'wifi aircrack wireless pentest'; Id = 'R29'; Sub = 'wifi-wireless/SKILL.md' },
-    @{ N = 'extension'; H = 'chrome extension crx reverse'; Id = 'R30'; Sub = 'browser-extension-reverse/SKILL.md' }
+    @{ N = 'extension'; H = 'chrome extension crx reverse'; Id = 'R30'; Sub = 'browser-extension-reverse/SKILL.md' },
+    @{ N = 'macos'; H = 'macos mach-o codesign reverse'; Id = 'R31'; Sub = 'macos-reverse/SKILL.md' },
+    @{ N = 'thick'; H = 'thick client electron desktop client'; Id = 'R32'; Sub = 'thick-client/SKILL.md' },
+    @{ N = 'gorust'; H = 'golang stripped go binary reverse'; Id = 'R33'; Sub = 'go-rust-reverse/SKILL.md' },
+    @{ N = 'hw'; H = 'uart jtag hardware debug pads'; Id = 'R34'; Sub = 'hardware-security/SKILL.md' },
+    @{ N = 'db'; H = 'database security mysql postgres redis'; Id = 'R35'; Sub = 'database-security/SKILL.md' },
+    @{ N = 'email'; H = 'phishing spf dkim dmarc email security'; Id = 'R36'; Sub = 'email-security/SKILL.md' },
+    @{ N = 'sso'; H = 'saml oidc sso federation'; Id = 'R37'; Sub = 'identity-federation/SKILL.md' },
+    @{ N = 'sdr'; H = 'sdr hackrf gnu radio rf'; Id = 'R38'; Sub = 'radio-sdr/SKILL.md' }
 )
 foreach ($c in $cases) {
     $out = Join-Path $ScratchDir ("route-{0}" -f $c.N)

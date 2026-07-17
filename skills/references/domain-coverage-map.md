@@ -25,7 +25,15 @@
 | 云 / 容器 / K8s | `cloud-k8s/` | |
 | 代码审计 / SAST | `code-audit/` | |
 | Wi-Fi / 无线 | `wifi-wireless/` | |
-| 游戏客户端 | `game-reverse/` | |
+| OT / ICS | `ot-ics/` | 被动优先；写寄存器默认禁止 |
+| macOS | `macos-reverse/` | iOS 仍走 mobile-reverse |
+| 厚客户端 | `thick-client/` | |
+| Go / Rust 二进制 | `go-rust-reverse/` | |
+| 硬件调试口 | `hardware-security/` | 交接 firmware-pentest |
+| 数据库 | `database-security/` | |
+| 邮件 / 钓鱼 | `email-security/` | |
+| 联邦身份 SSO | `identity-federation/` | 与 api-security JWT 互补 |
+| RF / SDR | `radio-sdr/` | 默认只收；非 Wi-Fi |
 | 多阶段攻击 | `attack-chain/` | |
 | Pwn | `pwn-chain/` | |
 | N-day 补丁 | `patch-diff-exploit/` | |
@@ -44,7 +52,8 @@
 
 | 域 | 策略 |
 |----|------|
-| OT/ICS | 仍缺独立深 skill：联网搜方法论 → 提议新增或外链 ToB |
+| 纯游戏外挂开发 | 不作为产品方向；Unity 样本仍可走 `reverse-engineering` + seed-014 |
+| 深度汽车/航空认证级 | 可外链；本包仅有 RF/OT 入口级 |
 | 纯 GRC/合规长文 | 不替代专业 GRC 工具；可写报告模板引用 |
 | 800+ ATT&CK 微 skill | 用本表 + ATT&CK 可选标签（Finding 字段） |
 
